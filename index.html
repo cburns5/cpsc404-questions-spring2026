@@ -4,148 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CPSC 404 — Question Picker</title>
+    <link rel="stylesheet" href="picker.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="picker.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Georgia', serif;
-            background: #1a1a2e;
-            color: #e0e0e0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem;
-        }
-
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 1.5rem;
-            color: #a0c4ff;
-            text-align: center;
-        }
-
-        .controls {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 2rem;
-        }
-
-        select, button {
-            font-size: 1.2rem;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-        }
-
-        select {
-            background: #16213e;
-            color: #e0e0e0;
-            border: 2px solid #0f3460;
-        }
-
-        button {
-            background: #0f3460;
-            color: #e0e0e0;
-            transition: background 0.2s;
-        }
-
-        button:hover:not(:disabled) {
-            background: #533483;
-        }
-
-        button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .status {
-            font-size: 1rem;
-            color: #7b8fa1;
-            margin-left: 0.5rem;
-        }
-
-        .keyboard-hint {
-            font-size: 0.85rem;
-            color: #556677;
-            margin-top: 0.5rem;
-            text-align: center;
-            width: 100%;
-        }
-
-        .question-card {
-            background: #16213e;
-            border: 2px solid #0f3460;
-            border-radius: 16px;
-            padding: 3rem;
-            max-width: 900px;
-            width: 100%;
-            min-height: 200px;
-            max-height: 70vh;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .question-card .author {
-            font-size: 1rem;
-            color: #7b8fa1;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-
-        .question-card .content {
-            font-size: 1.6rem;
-            line-height: 1.6;
-            color: #f0f0f0;
-        }
-
-        .question-card .content p {
-            margin-bottom: 1rem;
-        }
-
-        .question-card .content strong {
-            color: #a0c4ff;
-        }
-
-        .scroll-hint {
-            text-align: center;
-            color: #7b8fa1;
-            font-size: 0.9rem;
-            padding-top: 0.5rem;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 1; }
-        }
-
-        .placeholder {
-            text-align: center;
-            color: #7b8fa1;
-            font-size: 1.4rem;
-            font-style: italic;
-        }
-
-        .done-message {
-            text-align: center;
-            color: #ffc107;
-            font-size: 1.4rem;
-        }
-
-        @media (max-width: 600px) {
-            .question-card { padding: 1.5rem; }
-            .question-card .content { font-size: 1.2rem; }
-            h1 { font-size: 1.4rem; }
-        }
-    </style>
 </head>
 <body>
     <h1>CPSC 404 — Discussion Question Picker</h1>
@@ -165,23 +26,17 @@
     </div>
 
     <script>
-        const REPO_OWNER = 'kousen';
-        const REPO_NAME = 'cpsc404-questions-spring2026';
-        const API_BASE = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents`;
-
         const weekSelect = document.getElementById('weekSelect');
         const pickBtn = document.getElementById('pickBtn');
         const resetBtn = document.getElementById('resetBtn');
         const card = document.getElementById('card');
         const status = document.getElementById('status');
 
-        // Pool state (functions come from picker.js)
         let pool = null;
 
-        // Load the list of week folders from the repo
         async function loadWeeks() {
             try {
-                const res = await fetch(API_BASE);
+                const res = await fetch(REPO_CONFIG.apiBase);
                 const items = await res.json();
                 const weeks = items
                     .filter(item => item.type === 'dir' && item.name.startsWith('week'))
@@ -200,7 +55,6 @@
             }
         }
 
-        // Load all questions for a given week
         async function loadQuestions(weekDir) {
             pickBtn.disabled = true;
             resetBtn.disabled = true;
@@ -208,9 +62,9 @@
             status.textContent = '';
 
             try {
-                const res = await fetch(`${API_BASE}/${weekDir}/questions`);
+                const res = await fetch(`${REPO_CONFIG.apiBase}/${weekDir}/questions`);
                 const files = await res.json();
-                const mdFiles = files.filter(f => f.name.endsWith('.md') && f.name !== '.gitkeep');
+                const mdFiles = files.filter(isQuestionFile);
 
                 const fetched = await Promise.all(
                     mdFiles.map(async (f) => {
@@ -222,10 +76,8 @@
                         };
                     })
                 );
-                // Filter out empty submissions
-                const questions = fetched.filter(q => q.body.trim().length > 0);
 
-                pool = createPool(questions);
+                pool = createPool(fetched.filter(isNonEmpty));
                 updateStatus();
                 pickBtn.disabled = false;
                 resetBtn.disabled = false;
@@ -240,7 +92,6 @@
             status.textContent = `${pool.remaining} of ${pool.total} remaining`;
         }
 
-        // Check if the card content overflows and show a scroll hint
         function checkScroll() {
             const existing = card.querySelector('.scroll-hint');
             if (existing) existing.remove();
@@ -260,7 +111,6 @@
                 <div class="content">${rendered}</div>
             `;
             card.scrollTop = 0;
-            // Check after render
             requestAnimationFrame(checkScroll);
         }
 
@@ -272,8 +122,7 @@
                 return;
             }
 
-            const question = pool.pick();
-            showQuestion(question);
+            showQuestion(pool.pick());
             updateStatus();
 
             if (pool.isEmpty) {
@@ -303,11 +152,9 @@
         });
 
         pickBtn.addEventListener('click', pickRandom);
-        resetBtn.addEventListener('click', resetPool);
+        resetBtn.addEventListener('click', resetQuestionPool);
 
-        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            // Ignore if focus is on the select dropdown
             if (e.target === weekSelect) return;
 
             if ((e.key === ' ' || e.key === 'ArrowRight') && !pickBtn.disabled) {
@@ -319,7 +166,6 @@
             }
         });
 
-        // Start
         loadWeeks();
     </script>
 </body>

@@ -1,0 +1,138 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Georgia', serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+}
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: #a0c4ff;
+    text-align: center;
+}
+
+.controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+select, button {
+    font-size: 1.2rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+select {
+    background: #16213e;
+    color: #e0e0e0;
+    border: 2px solid #0f3460;
+}
+
+button {
+    background: #0f3460;
+    color: #e0e0e0;
+    transition: background 0.2s;
+}
+
+button:hover:not(:disabled) {
+    background: #533483;
+}
+
+button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.status {
+    font-size: 1rem;
+    color: #7b8fa1;
+    margin-left: 0.5rem;
+}
+
+.keyboard-hint {
+    font-size: 0.85rem;
+    color: #556677;
+    margin-top: 0.5rem;
+    text-align: center;
+    width: 100%;
+}
+
+.question-card {
+    background: #16213e;
+    border: 2px solid #0f3460;
+    border-radius: 16px;
+    padding: 3rem;
+    max-width: 900px;
+    width: 100%;
+    min-height: 200px;
+    max-height: 70vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.question-card .author {
+    font-size: 1rem;
+    color: #7b8fa1;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.question-card .content {
+    font-size: 1.6rem;
+    line-height: 1.6;
+    color: #f0f0f0;
+}
+
+.question-card .content p {
+    margin-bottom: 1rem;
+}
+
+.question-card .content strong {
+    color: #a0c4ff;
+}
+
+.scroll-hint {
+    text-align: center;
+    color: #7b8fa1;
+    font-size: 0.9rem;
+    padding-top: 0.5rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+.placeholder {
+    text-align: center;
+    color: #7b8fa1;
+    font-size: 1.4rem;
+    font-style: italic;
+}
+
+.done-message {
+    text-align: center;
+    color: #ffc107;
+    font-size: 1.4rem;
+}
+
+@media (max-width: 600px) {
+    .question-card { padding: 1.5rem; }
+    .question-card .content { font-size: 1.2rem; }
+    h1 { font-size: 1.4rem; }
+}

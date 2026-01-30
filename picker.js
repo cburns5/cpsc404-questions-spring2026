@@ -1,6 +1,14 @@
 // Pure functions and pool logic for the Discussion Question Picker.
 // Used by index.html and tested by tests/picker.test.js.
 
+const REPO_CONFIG = {
+    owner: 'kousen',
+    name: 'cpsc404-questions-spring2026',
+    get apiBase() {
+        return `https://api.github.com/repos/${this.owner}/${this.name}/contents`;
+    },
+};
+
 const WEEK_LABELS = {
     'week02-chapter01': 'Week 2 — Ch 1: Making Inevitable Conflict Productive',
     'week03-chapter02': 'Week 3 — Ch 2: Giving Good-Enough Answers',
@@ -74,7 +82,21 @@ function createPool(questions) {
     };
 }
 
+// Filter GitHub API directory listing to question markdown files
+function isQuestionFile(file) {
+    return file.name.endsWith('.md') && file.name !== '.gitkeep';
+}
+
+// Filter out empty submissions
+function isNonEmpty(question) {
+    return question.body.trim().length > 0;
+}
+
 // Node.js exports (ignored in browser)
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { WEEK_LABELS, cleanBody, extractAuthor, weekLabel, createPool };
+    module.exports = {
+        REPO_CONFIG, WEEK_LABELS,
+        cleanBody, extractAuthor, weekLabel,
+        createPool, isQuestionFile, isNonEmpty,
+    };
 }

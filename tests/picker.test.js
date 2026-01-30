@@ -1,4 +1,8 @@
-const { cleanBody, extractAuthor, weekLabel, createPool, WEEK_LABELS } = require('../picker');
+const {
+    REPO_CONFIG, WEEK_LABELS,
+    cleanBody, extractAuthor, weekLabel,
+    createPool, isQuestionFile, isNonEmpty,
+} = require('../picker');
 const assert = require('assert');
 
 let passed = 0;
@@ -308,6 +312,55 @@ test('Nicole: h3 preserved, ##Question:## stripped, filename fallback', () => {
     // ### is h3, not stripped
     assert(clean.includes('Nicole Balbuena Gutierrez'));
     assert(clean.includes('HYBHY Chapter 1 argues'));
+});
+
+// ─── REPO_CONFIG ─────────────────────────────────────────────
+
+console.log('\nREPO_CONFIG');
+
+test('has correct owner and repo name', () => {
+    assert.strictEqual(REPO_CONFIG.owner, 'kousen');
+    assert.strictEqual(REPO_CONFIG.name, 'cpsc404-questions-spring2026');
+});
+
+test('apiBase builds correct URL', () => {
+    assert.strictEqual(
+        REPO_CONFIG.apiBase,
+        'https://api.github.com/repos/kousen/cpsc404-questions-spring2026/contents'
+    );
+});
+
+// ─── isQuestionFile ──────────────────────────────────────────
+
+console.log('\nisQuestionFile');
+
+test('accepts .md files', () => {
+    assert(isQuestionFile({ name: 'smith-jane.md' }));
+});
+
+test('rejects .gitkeep', () => {
+    assert(!isQuestionFile({ name: '.gitkeep' }));
+});
+
+test('rejects non-md files', () => {
+    assert(!isQuestionFile({ name: 'notes.txt' }));
+    assert(!isQuestionFile({ name: 'image.png' }));
+});
+
+// ─── isNonEmpty ──────────────────────────────────────────────
+
+console.log('\nisNonEmpty');
+
+test('accepts question with content', () => {
+    assert(isNonEmpty({ body: 'Some question text' }));
+});
+
+test('rejects empty body', () => {
+    assert(!isNonEmpty({ body: '' }));
+});
+
+test('rejects whitespace-only body', () => {
+    assert(!isNonEmpty({ body: '  \n  \n  ' }));
 });
 
 // ─── Summary ─────────────────────────────────────────────────
